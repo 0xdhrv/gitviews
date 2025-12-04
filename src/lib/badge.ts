@@ -43,15 +43,25 @@ export function generateBadge(
   // Handle logo
   let logoBase64: string | undefined = undefined;
   if (options.logo) {
-    const icon = simpleIcons[`si${options.logo.charAt(0).toUpperCase()}${options.logo.slice(1).toLowerCase()}`];
-    if (icon && typeof icon === 'object' && 'svg' in icon) {
-      // Apply logo color if specified
-      let svg = icon.svg;
-      if (options.logoColor) {
-        // Replace the fill attribute in the SVG
-        svg = svg.replace(/fill="[^"]*"/g, `fill="${options.logoColor}"`);
+    try {
+      // Convert the logo slug to simple-icons format
+      // simple-icons uses camelCase with 'si' prefix, e.g., 'github' -> 'siGithub'
+      const iconKey = `si${options.logo.charAt(0).toUpperCase()}${options.logo.slice(1).replace(/-(.)/g, (_, c) => c.toUpperCase())}` as keyof typeof simpleIcons;
+      const icon = simpleIcons[iconKey];
+      
+      if (icon && typeof icon === 'object' && 'svg' in icon) {
+        // Apply logo color if specified
+        let svg = icon.svg;
+        if (options.logoColor) {
+          // Replace the fill/path color in the SVG
+          // Simple icons SVGs don't have fill attributes, so we need to add them to the path
+          svg = svg.replace(/<path/g, `<path fill="${options.logoColor}"`);
+        }
+        logoBase64 = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
       }
-      logoBase64 = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+    } catch (error) {
+      // Logo not found or error, continue without it
+      console.warn(`Logo '${options.logo}' not found in simple-icons`);
     }
   }
 
