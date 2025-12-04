@@ -138,7 +138,6 @@ export const GET: APIRoute = async ({ request }) => {
     const style = searchParams.get("style");
     const logo = searchParams.get("logo");
     const logoColor = searchParams.get("logoColor");
-    const logoSize = searchParams.get("logoSize");
     const label = searchParams.get("label");
     const labelColor = searchParams.get("labelColor");
     const color = searchParams.get("color");
@@ -152,15 +151,16 @@ export const GET: APIRoute = async ({ request }) => {
       style,
       logo,
       logoColor,
-      logoSize,
       label,
       labelColor,
       color,
       links: links.length > 0 ? links : null,
     });
 
-    // Determine cache control
-    const maxAge = cacheSeconds ? Math.min(parseInt(cacheSeconds, 10), 86400) : 300; // Default 5 minutes, max 24 hours
+    // Determine cache control with validation
+    const maxAge = cacheSeconds 
+      ? Math.max(0, Math.min(parseInt(cacheSeconds, 10) || 300, 86400)) 
+      : 300; // Default 5 minutes, max 24 hours
     const cacheControl = `public, max-age=${maxAge}`;
 
     return new Response(badge, {

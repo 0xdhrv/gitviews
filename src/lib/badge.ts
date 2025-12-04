@@ -11,7 +11,6 @@ interface Options {
   style?: string | null;
   logo?: string | null;
   logoColor?: string | null;
-  logoSize?: string | null;
   label?: string | null;
   prefix?: string | null;
   suffix?: string | null;

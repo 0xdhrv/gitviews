@@ -17,11 +17,9 @@ export const GET: APIRoute = async ({ request, params }) => {
   const color = searchParams.get("color");
   const logo = searchParams.get("logo");
   const logoColor = searchParams.get("logoColor");
-  const logoSize = searchParams.get("logoSize");
   const label = searchParams.get("label");
   const prefix = searchParams.get("prefix");
   const suffix = searchParams.get("suffix");
-  const cacheSeconds = searchParams.get("cacheSeconds");
   const links = searchParams.getAll("link");
 
   const badge = generateBadge("Profile Views", String(views.toLocaleString()), {
@@ -30,7 +28,6 @@ export const GET: APIRoute = async ({ request, params }) => {
     labelColor,
     logo,
     logoColor,
-    logoSize,
     label,
     prefix,
     suffix,
@@ -40,7 +37,10 @@ export const GET: APIRoute = async ({ request, params }) => {
   await incrementTotal();
 
   // Determine cache control
-  const maxAge = cacheSeconds ? parseInt(cacheSeconds, 10) : 0;
+  const cacheSecondsParam = searchParams.get("cacheSeconds");
+  const maxAge = cacheSecondsParam 
+    ? Math.max(0, Math.min(parseInt(cacheSecondsParam, 10) || 0, 86400)) 
+    : 0; // Max 24 hours
   const cacheControl =
     maxAge > 0 ? `public, max-age=${maxAge}` : "no-cache, no-store, must-revalidate";
 
