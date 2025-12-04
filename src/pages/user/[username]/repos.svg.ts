@@ -11,21 +11,43 @@ export const GET: APIRoute = async ({ params, request }) => {
 
   const { searchParams } = new URL(request.url);
   const style = searchParams.get("style");
-  const labelColor = searchParams.get("label-color");
+  const labelColor = searchParams.get("labelColor") || searchParams.get("label-color");
   const color = searchParams.get("color");
+  const logo = searchParams.get("logo");
+  const logoColor = searchParams.get("logoColor");
+  const label = searchParams.get("label");
+  const prefix = searchParams.get("prefix");
+  const suffix = searchParams.get("suffix");
+  const links = searchParams.getAll("link");
 
   const badge = generateBadge("Repo Views", String(views.toLocaleString()), {
     style,
     color,
     labelColor,
+    logo,
+    logoColor,
+    label,
+    prefix,
+    suffix,
+    links: links.length > 0 ? links : null,
   });
 
-  return new Response(badge, {
-    headers: {
-      "Content-Type": "image/svg+xml",
-      "Cache-Control": "no-cache, no-store, must-revalidate",
-      Pragma: "no-cache",
-      Expires: "0",
-    },
-  });
+  // Determine cache control
+  const cacheSecondsParam = searchParams.get("cacheSeconds");
+  const maxAge = cacheSecondsParam 
+    ? Math.max(0, Math.min(parseInt(cacheSecondsParam, 10) || 0, 86400)) 
+    : 0; // Max 24 hours
+
+  const headers: Record<string, string> = {
+    "Content-Type": "image/svg+xml",
+    "Cache-Control": maxAge > 0 ? `public, max-age=${maxAge}` : "no-cache, no-store, must-revalidate",
+  };
+
+  // Only add Pragma and Expires for no-cache scenarios
+  if (maxAge === 0) {
+    headers.Pragma = "no-cache";
+    headers.Expires = "0";
+  }
+
+  return new Response(badge, { headers });
 };
