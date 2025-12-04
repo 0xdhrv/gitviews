@@ -52,9 +52,13 @@ export function generateBadge(
         // Apply logo color if specified
         let svg = icon.svg;
         if (options.logoColor) {
-          // Replace the fill/path color in the SVG
-          // Simple icons SVGs don't have fill attributes, so we need to add them to the path
-          svg = svg.replace(/<path/g, `<path fill="${options.logoColor}"`);
+          // Validate color format to prevent SVG injection
+          const validColorPattern = /^(#[0-9a-fA-F]{3,6}|[a-z]+|rgb\([^)]+\)|rgba\([^)]+\)|hsl\([^)]+\)|hsla\([^)]+\))$/;
+          if (validColorPattern.test(options.logoColor)) {
+            // Replace the fill/path color in the SVG
+            // Simple icons SVGs don't have fill attributes, so we need to add them to the path
+            svg = svg.replace(/<path/g, `<path fill="${options.logoColor}"`);
+          }
         }
         logoBase64 = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
       }

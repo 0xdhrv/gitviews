@@ -42,15 +42,17 @@ export const GET: APIRoute = async ({ params, request }) => {
   const maxAge = cacheSecondsParam 
     ? Math.max(0, Math.min(parseInt(cacheSecondsParam, 10) || 0, 86400)) 
     : 0; // Max 24 hours
-  const cacheControl =
-    maxAge > 0 ? `public, max-age=${maxAge}` : "no-cache, no-store, must-revalidate";
 
-  return new Response(badge, {
-    headers: {
-      "Content-Type": "image/svg+xml",
-      "Cache-Control": cacheControl,
-      Pragma: maxAge > 0 ? "" : "no-cache",
-      Expires: maxAge > 0 ? "" : "0",
-    },
-  });
+  const headers: Record<string, string> = {
+    "Content-Type": "image/svg+xml",
+    "Cache-Control": maxAge > 0 ? `public, max-age=${maxAge}` : "no-cache, no-store, must-revalidate",
+  };
+
+  // Only add Pragma and Expires for no-cache scenarios
+  if (maxAge === 0) {
+    headers.Pragma = "no-cache";
+    headers.Expires = "0";
+  }
+
+  return new Response(badge, { headers });
 };
